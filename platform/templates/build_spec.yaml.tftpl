@@ -1,0 +1,49 @@
+version: 0.1
+component: build
+timeoutInSeconds: 3600
+runAs: root
+shell: bash
+failImmediatelyOnError: true
+
+env:
+  variables:
+    RELEASE_IDENTITY_DOMAIN_URL: "${release_identity_domain_url}"
+  vaultVariables:
+    RELEASE_CLIENT_ID: "${release_client_id_secret_id}"
+    RELEASE_CLIENT_SECRET: "${release_client_secret_secret_id}"
+  exportedVariables:
+    - APPGATEWAY_RELEASE_TAG
+
+steps:
+  - type: Command
+    name: Prepare and validate App Gateway release
+    timeoutInSeconds: 3300
+    command: |
+      export RELEASE_ENGINE=podman
+      for ca_bundle in /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/pki/tls/certs/ca-bundle.crt; do
+        if [ -r "$ca_bundle" ]; then
+          export SSL_CERT_FILE="$ca_bundle"
+          break
+        fi
+      done
+      test -n "${SSL_CERT_FILE:-}" -a -r "$SSL_CERT_FILE"
+      python3 release/scripts/prepare_release.py \
+        --work-dir .release-work \
+        --manifest .release-work/candidate-release.json \
+        --local-image appgateway-release:candidate
+      python3 release/scripts/validate_release.py .release-work/candidate-release.json
+      python3 release/scripts/build_runtime_image.py \
+        --manifest .release-work/candidate-release.json \
+        --wallet-tool-zip "$(find .release-work -maxdepth 1 -name 'idcs-appgateway-wallet-tool*.zip' -print -quit)" \
+        --image appgateway-release:runtime \
+        --work-dir .release-runtime
+      export APPGATEWAY_RELEASE_TAG="$(python3 -c 'import json; print(json.load(open(".release-work/candidate-release.json"))["version"])')"
+      echo "Prepared App Gateway release: $APPGATEWAY_RELEASE_TAG"
+
+outputArtifacts:
+  - name: appgateway-image
+    type: DOCKER_IMAGE
+    location: "appgateway-release:runtime"
+  - name: candidate-release-manifest
+    type: BINARY
+    location: ".release-work/candidate-release.json"

@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1880" viewBox="0 0 1800 1880" role="img" aria-labelledby="title desc">
+  <title id="title">OCI IAM App Gateway end-to-end deployment flow</title>
+  <desc id="desc">Flowchart showing prerequisites, the DevOps bootstrap ZIP, generated OCI DevOps foundation, manual pipeline run, IAM and wallet automation, Container or Compute runtime selection, sample or custom application mode, access options, and validation. A separate pipeline source ZIP is shown for maintaining an existing DevOps repository.</desc>
+
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1,1 L11,6 L1,11 Z" fill="#566573"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1,1 L11,6 L1,11 Z" fill="#2F6B8A"/>
+    </marker>
+    <style>
+      .sans { font-family: Arial, Helvetica, sans-serif; letter-spacing: 0; }
+      .mono { font-family: Consolas, Menlo, monospace; letter-spacing: 0; }
+      .page-title { font-size: 40px; font-weight: 700; fill: #1F2933; }
+      .page-subtitle { font-size: 20px; font-weight: 400; fill: #52606D; }
+      .stage { font-size: 15px; font-weight: 700; fill: #52606D; }
+      .box-title { font-size: 23px; font-weight: 700; fill: #1F2933; }
+      .body { font-size: 17px; font-weight: 400; fill: #52606D; }
+      .small { font-size: 15px; font-weight: 400; fill: #52606D; }
+      .zip { font-size: 18px; font-weight: 700; fill: #8E2F22; }
+      .decision { font-size: 20px; font-weight: 700; fill: #1F2933; }
+      .branch { font-size: 15px; font-weight: 700; fill: #52606D; }
+      .number { font-size: 15px; font-weight: 700; fill: #FFFFFF; }
+      .success { font-size: 24px; font-weight: 700; fill: #245B3B; }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1880" fill="#F7F8FA"/>
+  <rect x="0" y="0" width="1800" height="10" fill="#C74634"/>
+
+  <text class="sans page-title" x="90" y="75">OCI IAM App Gateway Deployment Flow</text>
+  <text class="sans page-subtitle" x="90" y="112">One Cloud Shell bootstrap, one DevOps pipeline run, two supported runtime paths</text>
+
+  <!-- Stage: Prepare -->
+  <rect x="90" y="150" width="1620" height="38" rx="6" fill="#ECEFF2"/>
+  <rect x="90" y="150" width="10" height="38" rx="5" fill="#C74634"/>
+  <text class="sans stage" x="120" y="175">PREPARE</text>
+
+  <rect x="520" y="218" width="760" height="112" rx="8" fill="#FFFFFF" stroke="#CDD6DF" stroke-width="2"/>
+  <circle cx="560" cy="254" r="18" fill="#C74634"/>
+  <text class="sans number" x="560" y="260" text-anchor="middle">1</text>
+  <text class="sans box-title" x="594" y="261">Complete prerequisites</text>
+  <text class="sans body" x="560" y="297">IAM admin app • private OCIR image • VCN/subnet • Vault/key • dynamic groups and policies</text>
+
+  <line x1="900" y1="330" x2="900" y2="370" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="420" y="390" width="960" height="142" rx="8" fill="#FDF3F1" stroke="#E4ACA4" stroke-width="2"/>
+  <circle cx="460" cy="428" r="18" fill="#C74634"/>
+  <text class="sans number" x="460" y="434" text-anchor="middle">2</text>
+  <text class="sans box-title" x="494" y="435">Upload and extract the operator package in OCI Cloud Shell</text>
+  <text class="mono zip" x="900" y="477" text-anchor="middle">oci-iam-appgateway-devops-bootstrap.zip</text>
+  <text class="sans small" x="900" y="506" text-anchor="middle">Leave sample configuration unchanged, or edit the three application configuration files</text>
+
+  <line x1="900" y1="532" x2="900" y2="572" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="510" y="592" width="780" height="120" rx="8" fill="#FFFFFF" stroke="#CDD6DF" stroke-width="2"/>
+  <circle cx="550" cy="630" r="18" fill="#C74634"/>
+  <text class="sans number" x="550" y="636" text-anchor="middle">3</text>
+  <text class="sans box-title" x="584" y="637">Run bootstrap and enter deployment values once</text>
+  <text class="sans body" x="550" y="677">IAM domain • Vault • OCIR credentials • network • runtime • access • TLS • optional SSH/LB</text>
+
+  <line x1="900" y1="712" x2="900" y2="760" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- Stage: Bootstrap -->
+  <rect x="90" y="780" width="1620" height="38" rx="6" fill="#E8F2F5"/>
+  <rect x="90" y="780" width="10" height="38" rx="5" fill="#2F6B8A"/>
+  <text class="sans stage" x="120" y="805">BOOTSTRAP CREATES THE ISOLATED DEVOPS FOUNDATION</text>
+
+  <rect x="435" y="848" width="930" height="150" rx="8" fill="#FFFFFF" stroke="#AFC4D0" stroke-width="2"/>
+  <circle cx="475" cy="886" r="18" fill="#2F6B8A"/>
+  <text class="sans number" x="475" y="892" text-anchor="middle">4</text>
+  <text class="sans box-title" x="509" y="893">Create and configure OCI DevOps</text>
+  <text class="sans body" x="475" y="934">Project • private source repository • build pipeline • logs • state bucket</text>
+  <text class="sans body" x="475" y="966">Store credentials in Vault and publish reviewed pipeline source and application configuration</text>
+
+  <!-- Maintainer update path -->
+  <rect x="1390" y="848" width="320" height="150" rx="8" fill="#FAFBFC" stroke="#8A98A6" stroke-width="2" stroke-dasharray="8 7"/>
+  <text class="sans branch" x="1550" y="879" text-anchor="middle">MAINTAINER UPDATE PATH</text>
+  <text class="mono small" x="1550" y="916" text-anchor="middle">oci-iam-appgateway-</text>
+  <text class="mono small" x="1550" y="941" text-anchor="middle">deployment-pipeline-source.zip</text>
+  <text class="sans small" x="1550" y="974" text-anchor="middle">Updates an existing source repository</text>
+  <line x1="1390" y1="923" x2="1370" y2="923" stroke="#8A98A6" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow)"/>
+
+  <line x1="900" y1="998" x2="900" y2="1038" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="555" y="1058" width="690" height="102" rx="8" fill="#EAF3F7" stroke="#7EA6BA" stroke-width="2"/>
+  <circle cx="595" cy="1096" r="18" fill="#2F6B8A"/>
+  <text class="sans number" x="595" y="1102" text-anchor="middle">5</text>
+  <text class="sans box-title" x="629" y="1103">Start the generated pipeline manually</text>
+  <text class="sans body" x="595" y="1137">OCI Console → DevOps project → Build pipeline → Start manual run → APPLY</text>
+
+  <line x1="900" y1="1160" x2="900" y2="1204" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- Stage: Automate -->
+  <rect x="90" y="1224" width="1620" height="38" rx="6" fill="#EAF4EF"/>
+  <rect x="90" y="1224" width="10" height="38" rx="5" fill="#357A52"/>
+  <text class="sans stage" x="120" y="1249">DEVOPS PIPELINE AUTOMATION</text>
+
+  <rect x="245" y="1292" width="380" height="116" rx="8" fill="#FFFFFF" stroke="#AAC8B7" stroke-width="2"/>
+  <text class="sans box-title" x="435" y="1332" text-anchor="middle">IAM Configuration</text>
+  <text class="sans body" x="435" y="1366" text-anchor="middle">Enterprise Application • resources</text>
+  <text class="sans body" x="435" y="1392" text-anchor="middle">header rules • active App Gateway</text>
+
+  <line x1="625" y1="1350" x2="690" y2="1350" stroke="#357A52" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="710" y="1292" width="380" height="116" rx="8" fill="#FFFFFF" stroke="#AAC8B7" stroke-width="2"/>
+  <text class="sans box-title" x="900" y="1332" text-anchor="middle">Security Material</text>
+  <text class="sans body" x="900" y="1366" text-anchor="middle">Generate wallet and TLS material</text>
+  <text class="sans body" x="900" y="1392" text-anchor="middle">store protected values in Vault</text>
+
+  <line x1="1090" y1="1350" x2="1155" y2="1350" stroke="#357A52" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="1175" y="1292" width="380" height="116" rx="8" fill="#FFFFFF" stroke="#AAC8B7" stroke-width="2"/>
+  <text class="sans box-title" x="1365" y="1332" text-anchor="middle">Pull Approved Runtime Image</text>
+  <text class="sans body" x="1365" y="1366" text-anchor="middle">Use selected private OCIR image</text>
+  <text class="sans body" x="1365" y="1392" text-anchor="middle">with supplied pull credentials</text>
+
+  <line x1="900" y1="1408" x2="900" y2="1446" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- Runtime decision -->
+  <polygon points="900,1462 1040,1530 900,1598 760,1530" fill="#EEF3F8" stroke="#476A8F" stroke-width="2"/>
+  <text class="sans decision" x="900" y="1522" text-anchor="middle">Runtime</text>
+  <text class="sans decision" x="900" y="1548" text-anchor="middle">choice</text>
+
+  <line x1="760" y1="1530" x2="520" y2="1530" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+  <text class="sans branch" x="650" y="1515" text-anchor="middle">CONTAINER</text>
+  <rect x="170" y="1478" width="330" height="104" rx="8" fill="#EEF3F8" stroke="#8EA8C3" stroke-width="2"/>
+  <text class="sans box-title" x="335" y="1520" text-anchor="middle">OCI Container Instance</text>
+  <text class="sans body" x="335" y="1552" text-anchor="middle">Managed container runtime</text>
+
+  <line x1="1040" y1="1530" x2="1280" y2="1530" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+  <text class="sans branch" x="1150" y="1515" text-anchor="middle">COMPUTE</text>
+  <rect x="1300" y="1478" width="330" height="104" rx="8" fill="#F0F6F2" stroke="#91B49E" stroke-width="2"/>
+  <text class="sans box-title" x="1465" y="1520" text-anchor="middle">OCI Compute Instance</text>
+  <text class="sans body" x="1465" y="1552" text-anchor="middle">Oracle Linux • Podman • systemd</text>
+
+  <!-- Branch merge -->
+  <path d="M335 1582 L335 1630 L900 1630" fill="none" stroke="#566573" stroke-width="3"/>
+  <path d="M1465 1582 L1465 1630 L900 1630" fill="none" stroke="#566573" stroke-width="3"/>
+  <line x1="900" y1="1630" x2="900" y2="1668" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- Application mode decision -->
+  <polygon points="900,1684 1030,1742 900,1800 770,1742" fill="#FFF5EC" stroke="#CA7B37" stroke-width="2"/>
+  <text class="sans decision" x="900" y="1735" text-anchor="middle">Application</text>
+  <text class="sans decision" x="900" y="1761" text-anchor="middle">mode</text>
+
+  <line x1="770" y1="1742" x2="545" y2="1742" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="180" y="1694" width="345" height="96" rx="8" fill="#FFF8F1" stroke="#D9A06C" stroke-width="2"/>
+  <text class="sans box-title" x="352" y="1733" text-anchor="middle">Sample Header App</text>
+  <text class="sans body" x="352" y="1764" text-anchor="middle">Deploy included smoke-test backend</text>
+
+  <line x1="1030" y1="1742" x2="1255" y2="1742" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1275" y="1694" width="345" height="96" rx="8" fill="#FFF8F1" stroke="#D9A06C" stroke-width="2"/>
+  <text class="sans box-title" x="1447" y="1733" text-anchor="middle">Customer Application</text>
+  <text class="sans body" x="1447" y="1764" text-anchor="middle">Use configured external origin</text>
+
+  <!-- Outcome strip -->
+  <line x1="352" y1="1790" x2="352" y2="1816" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1447" y1="1790" x2="1447" y2="1816" stroke="#566573" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="90" y="1820" width="1620" height="42" rx="7" fill="#EAF4EF" stroke="#91B49E" stroke-width="2"/>
+  <text class="sans success" x="900" y="1849" text-anchor="middle">Public direct, existing OCI LB, or external LB → IAM redirect → authenticated headers → protected application</text>
+</svg>

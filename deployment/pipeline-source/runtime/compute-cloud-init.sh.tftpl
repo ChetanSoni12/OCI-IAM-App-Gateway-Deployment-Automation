@@ -1,0 +1,109 @@
+#!/bin/bash
+set -euo pipefail
+
+exec > >(tee -a /var/log/iam-appgateway-bootstrap.log) 2>&1
+
+retry() {
+  local attempt=1
+  until "$@"; do
+    if (( attempt >= 6 )); then
+      echo "Command failed after $attempt attempts: $*" >&2
+      return 1
+    fi
+    sleep $((attempt * 10))
+    attempt=$((attempt + 1))
+  done
+}
+
+retry dnf -y install oraclelinux-developer-release-el8
+retry dnf -y install podman python36-oci-cli jq
+
+secret() {
+  retry oci secrets secret-bundle get \
+    --auth instance_principal \
+    --secret-id "$1" \
+    --query 'data."secret-bundle-content".content' \
+    --raw-output | base64 -d
+}
+
+install -d -m 0700 /opt/iam-appgateway
+secret '${wallet_secret_id}' > /opt/iam-appgateway/cwallet.sso
+secret '${tls_cert_secret_id}' > /opt/iam-appgateway/cert.pem
+secret '${tls_key_secret_id}' > /opt/iam-appgateway/key.pem
+chmod 0600 /opt/iam-appgateway/cwallet.sso /opt/iam-appgateway/cert.pem /opt/iam-appgateway/key.pem
+
+secret '${ocir_secret_id}' > /tmp/iam-appgateway-ocir.json
+jq -r '.password' /tmp/iam-appgateway-ocir.json | podman login '${image_host}' \
+  --username "$(jq -r '.username' /tmp/iam-appgateway-ocir.json)" \
+  --password-stdin
+rm -f /tmp/iam-appgateway-ocir.json
+retry podman pull '${image}'
+
+# The approved App Gateway image runs as nginx (UID/GID supplied by the image).
+# Keep the wallet and private key at 0600 while granting that runtime user access.
+appgateway_uid="$(podman run --rm --entrypoint id '${image}' -u nginx)"
+appgateway_gid="$(podman run --rm --entrypoint id '${image}' -g nginx)"
+chown "$appgateway_uid:$appgateway_gid" \
+  /opt/iam-appgateway/cwallet.sso \
+  /opt/iam-appgateway/cert.pem \
+  /opt/iam-appgateway/key.pem
+
+if command -v firewall-cmd >/dev/null 2>&1 && firewall-cmd --state >/dev/null 2>&1; then
+  firewall-cmd --permanent --add-port='${gateway_https_port}/tcp'
+  firewall-cmd --reload
+fi
+%{ if smoke_backend ~}
+retry podman pull '${smoke_backend_image}'
+%{ endif ~}
+
+%{ if smoke_backend ~}
+cat > /etc/systemd/system/iam-appgateway-sample.service <<'UNIT'
+[Unit]
+Description=OCI IAM App Gateway sample header application
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Restart=always
+RestartSec=5
+ExecStartPre=-/usr/bin/podman rm -f iam-appgateway-sample
+ExecStart=/usr/bin/podman run --name iam-appgateway-sample --network host --log-driver=journald ${smoke_backend_image}
+ExecStop=/usr/bin/podman stop -t 20 iam-appgateway-sample
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+%{ endif ~}
+
+cat > /etc/systemd/system/iam-appgateway.service <<'UNIT'
+[Unit]
+Description=OCI IAM App Gateway
+After=network-online.target%{ if smoke_backend } iam-appgateway-sample.service%{ endif }
+Wants=network-online.target
+%{ if smoke_backend }Requires=iam-appgateway-sample.service%{ endif }
+
+[Service]
+Restart=always
+RestartSec=5
+ExecStartPre=-/usr/bin/podman rm -f iam-appgateway
+ExecStart=/usr/bin/podman run --name iam-appgateway --network host --log-driver=journald \
+  -e CG_APP_TENANT='${tenant}' \
+  -e IDCS_INSTANCE_URL='${domain_url}' \
+  -e NGINX_DNS_RESOLVER='${resolver}' \
+  -e HOST_MACHINE='${runtime_hostname}' \
+  -v /opt/iam-appgateway/cwallet.sso:/usr/local/nginx/conf/cwallet.sso:ro,Z \
+  -v /opt/iam-appgateway/cert.pem:/usr/local/nginx/conf/cert.pem:ro,Z \
+  -v /opt/iam-appgateway/key.pem:/usr/local/nginx/conf/key.pem:ro,Z \
+  ${image}
+ExecStop=/usr/bin/podman stop -t 20 iam-appgateway
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+systemctl daemon-reload
+%{ if smoke_backend ~}
+systemctl enable --now iam-appgateway-sample.service
+%{ endif ~}
+systemctl enable --now iam-appgateway.service
+echo "OCI IAM App Gateway bootstrap completed successfully."

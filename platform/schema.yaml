@@ -1,0 +1,149 @@
+title: App Gateway Private Image Release Platform
+description: Create the shared OCI DevOps, private OCIR, and Vault foundation used by App Gateway deployments in this tenancy.
+schemaVersion: 1.1.0
+version: "20260928"
+locale: en
+
+variableGroups:
+  - title: Platform Location
+    variables:
+      - ${region}
+      - ${compartment_ocid}
+      - ${tenancy_ocid}
+      - ${platform_name}
+
+  - title: Release Source IAM Domain
+    variables:
+      - ${release_identity_domain_url}
+      - ${release_client_id}
+      - ${release_client_secret}
+
+  - title: Private Registry Access
+    variables:
+      - ${ocir_pull_username}
+      - ${ocir_pull_auth_token}
+      - ${ocir_repository_name}
+
+  - title: Platform Vault
+    variables:
+      - ${vault_mode}
+      - ${vault_name}
+      - ${vault_key_name}
+      - ${existing_vault_id}
+      - ${existing_vault_key_id}
+
+variables:
+  region:
+    title: Region
+    type: oci:identity:region:name
+    required: true
+
+  compartment_ocid:
+    title: Platform Compartment
+    type: oci:identity:compartment:id
+    required: true
+    description: Compartment that will contain the private image repository, Vault, and DevOps resources.
+
+  tenancy_ocid:
+    title: Tenancy OCID
+    type: oci:identity:tenancy:id
+    required: true
+    description: Used only to create the DevOps access policy.
+
+  platform_name:
+    title: Platform Name
+    type: string
+    required: true
+    default: iam-appgateway
+    description: Short name used for the shared release resources.
+
+  release_identity_domain_url:
+    title: Release IAM Domain URL
+    type: string
+    required: true
+    description: IAM domain used by the internal release pipeline to retrieve the App Gateway package.
+
+  release_client_id:
+    title: Release IAM Client ID
+    type: password
+    required: true
+    description: Dedicated confidential application client ID for package retrieval.
+
+  release_client_secret:
+    title: Release IAM Client Secret
+    type: password
+    required: true
+    description: Dedicated confidential application client secret for package retrieval.
+
+  ocir_pull_username:
+    title: Private Registry Pull Username
+    type: password
+    required: true
+    description: One-time OCIR username used by future private image deployments.
+
+  ocir_pull_auth_token:
+    title: Private Registry Pull Token
+    type: password
+    required: true
+    description: One-time OCIR auth token used by future private image deployments.
+
+  ocir_repository_name:
+    title: Private Image Repository
+    type: string
+    required: true
+    default: iam-appgateway/appgateway
+    description: Private OCIR repository that stores validated App Gateway images.
+
+  vault_mode:
+    title: Secret Storage
+    type: enum
+    enum:
+      - Create a new Vault
+      - Use existing Vault
+    required: true
+    default: Create a new Vault
+    description: Choose where the platform stores release and private-registry credentials.
+
+  vault_name:
+    title: New Vault Name
+    type: string
+    required: true
+    default: iam-appgateway-release-vault
+    visible:
+      eq:
+        - ${vault_mode}
+        - Create a new Vault
+
+  vault_key_name:
+    title: New Vault Key Name
+    type: string
+    required: true
+    default: iam-appgateway-release-key
+    visible:
+      eq:
+        - ${vault_mode}
+        - Create a new Vault
+
+  existing_vault_id:
+    title: Existing Vault
+    type: oci:kms:vault:id
+    required: true
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+    visible:
+      eq:
+        - ${vault_mode}
+        - Use existing Vault
+
+  existing_vault_key_id:
+    title: Existing Vault Encryption Key
+    type: oci:kms:key:id
+    required: true
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+      vaultId: ${existing_vault_id}
+    visible:
+      eq:
+        - ${vault_mode}
+        - Use existing Vault
+

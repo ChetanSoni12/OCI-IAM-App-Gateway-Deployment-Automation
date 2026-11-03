@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "status": "approved",
+  "created_at_utc": "2026-09-25T00:00:00+00:00",
+  "source_identity_domain_url": "https://idcs-example.identity.oraclecloud.com",
+  "docker_package": {
+    "file_name": "idcs-appgateway-docker-26.1.06-2602110936.zip",
+    "download_url": "not-recorded-in-approved-manifest"
+  },
+  "wallet_tool_package": {
+    "file_name": "idcs-appgateway-wallet-tool-26.1.06-2602110936.zip",
+    "download_url": "not-recorded-in-approved-manifest"
+  },
+  "version": "26.1.06-2602110936",
+  "source_image": "local.local/idcs-appgateway-docker_linux_amd64:26.1.06-2602110936",
+  "prepared_local_image": "appgateway-release:26.1.06-2602110936",
+  "architecture": "amd64",
+  "promotion": {
+    "approved_ocir_image": "iad.ocir.io/examplenamespace/iam-appgateway/appgateway",
+    "immutable_digest": "sha256:replace-with-the-private-ocir-digest"
+  }
+}
+

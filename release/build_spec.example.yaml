@@ -1,0 +1,37 @@
+version: 0.1
+component: build
+timeoutInSeconds: 3600
+runAs: root
+shell: bash
+
+env:
+  vaultVariables:
+    # Replace with Vault secret OCIDs in the OCI DevOps build pipeline.
+    RELEASE_CLIENT_ID: "ocid1.vaultsecret.oc1..<release-client-id-secret-ocid>"
+    RELEASE_CLIENT_SECRET: "ocid1.vaultsecret.oc1..<release-client-secret-secret-ocid>"
+  variables:
+    # The IAM domain that OCI DevOps uses only to retrieve approved App Gateway packages.
+    RELEASE_IDENTITY_DOMAIN_URL: "https://idcs-<release-domain>.identity.oraclecloud.com"
+
+steps:
+  - type: Command
+    name: Prepare and validate App Gateway candidate image
+    timeoutInSeconds: 3300
+    command: |
+      export RELEASE_ENGINE=docker
+      python3 release/scripts/prepare_release.py \
+        --work-dir .release-work \
+        --manifest .release-work/candidate-release.json \
+        --local-image appgateway-release:candidate
+      python3 release/scripts/validate_release.py .release-work/candidate-release.json
+
+outputArtifacts:
+  - name: appgateway-image
+    type: DOCKER_IMAGE
+    # This must be the local tag created in the build step. In the OCI DevOps
+    # pipeline, a following Deliver Artifacts stage publishes this output to the
+    # selected private OCIR repository.
+    location: "appgateway-release:candidate"
+  - name: candidate-release-manifest
+    type: BINARY
+    location: ".release-work/candidate-release.json"

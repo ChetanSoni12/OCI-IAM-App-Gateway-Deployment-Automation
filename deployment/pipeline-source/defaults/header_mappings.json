@@ -1,0 +1,11 @@
+[
+  {
+    "iv-user": "$subject.user.userName"
+  },
+  {
+    "x-authenticated-user": "$subject.user.userName"
+  },
+  {
+    "x-authenticated-email": "$subject.user.primaryEmail"
+  }
+]
