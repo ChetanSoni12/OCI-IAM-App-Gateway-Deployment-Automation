@@ -110,6 +110,11 @@ Recommended sample values:
 | OCIR repository path | Approved path such as `iam-appgateway/appgateway` |
 | Approved image tag | Version supplied by the image release owner |
 
+> **Security note:** `0.0.0.0/0` permits access from every IPv4 address. Use it
+> only for a temporary smoke test when necessary. For normal deployments, use
+> trusted client, load balancer, or corporate network CIDRs. Prefer `/32` when
+> access is required from one workstation, and never use `0.0.0.0/0` for SSH.
+
 Enter the collected Identity Domain, Vault, OCIR, subnet, and credential values
 when prompted. For Git authentication, use the OCI DevOps Git username and an
 OCI auth token.

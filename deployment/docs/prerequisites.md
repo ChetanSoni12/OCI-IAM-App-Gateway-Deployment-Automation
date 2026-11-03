@@ -58,8 +58,12 @@ https://idcs-xxxxxxxx.identity.oraclecloud.com
 ```
 
 For public access, restrict App Gateway and SSH ingress to trusted CIDRs. Use
-`<administrator-public-ip>/32` for one workstation; do not use `0.0.0.0/0` for
-SSH.
+`<administrator-public-ip>/32` for one workstation.
+
+> **Security note:** `0.0.0.0/0` permits access from every IPv4 address. Use it
+> only for a temporary smoke test when necessary. For normal deployments,
+> specify trusted client, load balancer, or corporate network CIDRs. Never use
+> `0.0.0.0/0` for SSH.
 
 ## Network Requirements
 
