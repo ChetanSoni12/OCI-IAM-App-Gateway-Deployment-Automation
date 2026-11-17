@@ -89,6 +89,95 @@ The command creates:
 platform/dist/oci-iam-appgateway-release-platform.zip
 ```
 
+## Release IAM Identity Domain Requirements
+
+The release pipeline requires access to an OCI IAM Identity Domain from which it can download the App Gateway Docker package and wallet-tool package.
+
+This Identity Domain is used only as the approved software source. The release pipeline does not create an Enterprise Application or App Gateway in this domain.
+
+### Required confidential application
+
+Create a dedicated confidential application in the release IAM Identity Domain:
+
+1. Open **Identity & Security**, **Domains**.
+2. Select the release Identity Domain.
+3. Open **Integrated applications**.
+4. Select **Add application**.
+5. Select **Confidential Application** and launch the workflow.
+6. Enter a recognizable name, for example:
+
+   ```text
+   App Gateway Image Release Pipeline
+   ```
+
+7. Select **Configure this application as a client now**.
+8. Enable the **Client Credentials** grant type.
+9. Under **Grant the client access to Identity Cloud Service Admin APIs**, add the **Identity Domain Administrator** application role.
+10. Finish and activate the application.
+11. Record the generated **Client ID** and **Client Secret**.
+
+The release pipeline uses these credentials to request an OAuth token with:
+
+```text
+Grant type: client_credentials
+Scope: urn:opc:idm:__myscopes__
+```
+
+It then uses the token to:
+
+- Query the latest App Gateway package information.
+- Download the App Gateway Docker package.
+- Download the App Gateway wallet-tool package.
+- Identify and validate the available App Gateway version.
+
+The release confidential application does not need redirect URLs, browser-based grant types or application resources. The **Cloud Gate** application role is not required for image publication because this pipeline does not create or operate an App Gateway in the release domain.
+
+### Values required by the Resource Manager stack
+
+Record the following values:
+
+```text
+Release IAM Identity Domain URL
+Release IAM confidential-application client ID
+Release IAM confidential-application client secret
+```
+
+Use the Identity Domain base URL without an API path:
+
+```text
+https://idcs-xxxxxxxx.identity.oraclecloud.com
+```
+
+The Resource Manager stack stores the client ID and secret as OCI Vault secrets. The DevOps build pipeline reads them through Vault variables; they are not committed to the source repository or embedded in the published image.
+
+### Network requirement
+
+The OCI DevOps build runner must have outbound HTTPS access to:
+
+```text
+https://idcs-xxxxxxxx.identity.oraclecloud.com
+```
+
+TLS certificate verification remains enabled during package metadata retrieval and download.
+
+### Credential separation
+
+Do not use any of the following as the release credential:
+
+- An App Gateway runtime client ID and secret.
+- A customer Enterprise Application credential.
+- An OCIR auth token.
+- The target-domain deployment administrator credential.
+
+Use a dedicated release confidential application and restrict access to its client secret.
+
+### Relationship to application deployment
+
+The release confidential application is used only when publishing a new App Gateway image version.
+
+During application deployment, a separate confidential application in the target IAM Identity Domain is used to create the Enterprise Application, App Gateway registration and wallet. The running App Gateway uses its generated wallet and does not use the release confidential application.
+
+
 ## 2. Create the Release Platform
 
 1. In OCI Console, open **Developer Services**, **Resource Manager**, then
